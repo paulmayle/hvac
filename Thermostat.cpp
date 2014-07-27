@@ -163,6 +163,7 @@ void updateIdleScreen() {
 	}
 	ptrDesiredTemp->draw(forceRedraw);
 	updateCurrentTemp();
+	ptrInfoBox->draw(forceRedraw);
 }
 
 void updateProgramScreen() {
@@ -171,7 +172,6 @@ void updateProgramScreen() {
 	if (defineProgramScreen()) {
 		forceRedraw = true;
 	}
-
 	updateCurrentTemp();
 	updateDisplay();
 	ptrModeButton->draw(forceRedraw);
@@ -181,7 +181,6 @@ void updateProgramScreen() {
 	ptrDesiredTemp->draw(forceRedraw);
 	ptrCurrentTemp->draw(forceRedraw);
 	ptrInfoBox->draw(forceRedraw);
-
 }
 
 void updateCurrentTemp() {
@@ -369,7 +368,7 @@ bool defineProgramScreen() {
 		updateCurrentTemp();
 		ptrMainDisplayArea = new Button(0, 0, 319, 239, "", SmallFont, "Main Display Area");
 		ptrInfoBox = new Button(0, 120, 129, 119, "Info Box", SmallFont, "Info Box");
-
+		ptrInfoBox->update(LCD_BLACK, LCD_WHITE, LCD_LIME);
 		ptrDisplay->print("Current Temp", 0, 65, 0);
 		ptrDisplay->print("Target Temp", 129, 65, 0);
 
@@ -398,21 +397,26 @@ bool defineIdleScreen() {
 		//char displayOFF[5] = "OFF";
 		//char displayHEAT[5] = "Heat";
 		//char displayCOOL[5] = "Cool";
-		//char *displayMode =displayOFF;
+		char *hvacMode = "Off";
+		unsigned int hvacColor = LCD_WHITE;
 		switch (mode) {
 		case OFF:
 			ptrDesiredTemp->display(false); // don't show the button
 			ptrDisplay->setColor(LCD_YELLOW);
 			ptrDisplay->setFont(BigFont);
-			ptrDisplay->print("OFF", 215, 40, 0);
+			ptrDisplay->print("Off", 215, 40, 0);
 			break;
 		case HEAT:
 			ptrDesiredTemp->update(LCD_BLACK, LCD_RED, LCD_BLACK);
 			//displayMode =displayHEAT;
+			hvacMode = "Heating";
+			hvacColor = LCD_RED;
 			break;
 		case COOL:
 			ptrDesiredTemp->update(LCD_BLACK, LCD_LIME, LCD_BLACK);
 			//displayMode =displayCOOL;
+			hvacMode = "Cooling";
+			hvacColor = LCD_BLUE;
 			break;
 		}
 
@@ -425,10 +429,11 @@ bool defineIdleScreen() {
 		ptrDisplay->setColor(LCD_YELLOW);
 		ptrDisplay->print("Temperature", 50, 0, 0);
 
-		ptrDisplay->print("Target", 215, 0, 0);
+		ptrDisplay->print("Target", 225, 0, 0);
 
-		ptrInfoBox = new Button(0, 120, 129, 119, "displayMode", SmallFont, "Info Box");
-		ptrInfoBox->display(false);
+		ptrInfoBox = new Button(0, 160, 129, 79, hvacMode, SmallFont, "Info Box");
+		ptrInfoBox->update(LCD_BLACK, hvacColor, LCD_LIME);
+
 		return true;
 	} else {
 		return false;
