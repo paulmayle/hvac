@@ -35,9 +35,11 @@ Button::Button(int x, int y, int l, int h, char *name, uint8_t *font, char *debu
 	int xSpace = l - nameLength;
 	_tx = x + (xSpace / 2);
 
-	Serial.print("Button constructor: Name [");
+	Serial.print("Button: ");
+	Serial.print(_debugName);
+	Serial.print("  Constructor: Name [");
 	Serial.print(name);
-	Serial.print("] @ [");
+	Serial.print("]     @ [");
 	Serial.print(_x);
 	Serial.print(",");
 	Serial.print(_y);

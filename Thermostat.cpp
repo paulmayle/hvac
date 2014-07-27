@@ -1,5 +1,5 @@
 // Do not remove the include below
-#include "Thermostat2.h"
+#include "Thermostat.h"
 
 #include <UTFT.h>
 #include <UTouch.h>
@@ -21,6 +21,10 @@ unsigned int displayMode = 0;
 #define IDLE_SCREEN 1
 #define PROG_SCREEN 2
 #define ALT_SCREEN 3
+
+#define UP_ARROW "0"
+#define DOWN_ARROW "1"
+
 
 // VGA color palette
 const word LCD_BLACK = 0x0000;
@@ -106,6 +110,7 @@ UTFT * Button::_ptrLcd;
 void setup() {
 	Serial.begin(115200);
 	Serial.println("Starting Thermostat");
+
 // Set the i/o pins used :
 	ptrDisplay = new UTFT((byte) SSD1289, 38, 39, 40, 41, 0); // Remember to change the model parameter to suit your display module!
 	ptrTouch = new UTouch(6, 5, 4, 3, 2);
@@ -164,19 +169,13 @@ void updateProgramScreen() {
 	bool forceRedraw = false;
 
 	if (defineProgramScreen()) {
-
 		forceRedraw = true;
 	}
 
-	//forceRedraw = true;
-
 	updateCurrentTemp();
 	updateDisplay();
-
-	//ptrMainDisplayArea->draw(forceRedraw);
 	ptrModeButton->draw(forceRedraw);
 	ptrInfoBox->draw(forceRedraw);
-
 	ptrUpArrow->draw(forceRedraw);
 	ptrDownArrow->draw(forceRedraw);
 	ptrDesiredTemp->draw(forceRedraw);
@@ -285,20 +284,18 @@ void toggleMode() {
 		mode = OFF;
 		targetTemp = 0;
 	}
-//	updateDisplay();
 }
 
 void updateDisplay() {
+	Serial.println("=== Update Display ===");
 	switch (mode) {
 	case OFF:
 		updateProgramDisplayDetails("OFF", "Off", LCD_BLACK, LCD_WHITE, 0x73EF);
 		break;
 	case HEAT:
-		//updateProgramDisplayDetails("HEAT", "Heating", LCD_RED, LCD_WHITE, 0xFCE0);
 		updateProgramDisplayDetails("HEAT", "Heating", LCD_BLACK, LCD_RED, 0x73EF);
 		break;
 	case COOL:
-		//updateProgramDisplayDetails("COOL", "Cooling", LCD_BLUE, LCD_WHITE, 0x051F);
 		updateProgramDisplayDetails("COOL", "Cooling", LCD_BLACK, LCD_BLUE, 0x73EF);
 		break;
 	}
@@ -306,6 +303,7 @@ void updateDisplay() {
 
 void updateProgramDisplayDetails(char * mode, char * info, word bg, word tx, word br) {
 	Serial.println("Update Program Display ");
+	Serial.println("=== Update Program Display ===");
 	ptrMainDisplayArea->update(bg, bg, bg);
 	ptrModeButton->update(mode, bg, tx);
 	ptrCurrentTemp->update(bg, tx, br);
@@ -332,7 +330,6 @@ void displayTargetTemp(int tt) {
 }
 
 void resetScreen() {
-	//screenMode=NULL_SCREEN;
 	delete ptrModeButton;
 	delete ptrProgramButton;
 	delete ptrControlButton;
@@ -363,22 +360,21 @@ bool defineProgramScreen() {
 		ptrDisplay->clrScr();	// clear the screen the first time
 		Serial.println("=== Screen cleared ===");
 		ptrModeButton = new Button(240, 105, 70, 25, "ABC", SmallFont, "Mode");
-		ptrProgramButton = new Button(240, 5, 70, 25, "PROGRAM", SmallFont, "Program");
-		ptrControlButton = new Button();
-		ptrUpArrow = new Button(260, 10, 50, 60, "0", arrows7, "UP Arrow");
-		ptrDownArrow = new Button(260, 170, 50, 60, "1", arrows7, "DOWN Arrow");
+		ptrUpArrow = new Button(260, 10, 50, 60, UP_ARROW, arrows7, "UP Arrow");
+		ptrDownArrow = new Button(260, 170, 50, 60, DOWN_ARROW, arrows7, "DOWN Arrow");
 		ptrDesiredTemp = new Button(129, 0, 70, 60, "::", SevenSegNumFont, "Target Temp");
 		displayTargetTemp(targetTemp);
+		Serial.println("=== TT ===");
 		ptrCurrentTemp = new Button(0, 0, 70, 60, "00", SevenSegNumFont, "Current Temp");
 		updateCurrentTemp();
 		ptrMainDisplayArea = new Button(0, 0, 319, 239, "", SmallFont, "Main Display Area");
-		// ptrInfoBox = new Button(0, 120, 129, 119, "Info Box", SmallFont, "Info Box");
+		ptrInfoBox = new Button(0, 120, 129, 119, "Info Box", SmallFont, "Info Box");
 
 		ptrDisplay->print("Current Temp", 0, 65, 0);
 		ptrDisplay->print("Target Temp", 129, 65, 0);
 
 		// Timer clock
-
+		Serial.println("=== Timer Clock ===");
 
 
 
@@ -428,11 +424,11 @@ bool defineIdleScreen() {
 
 		ptrDisplay->setColor(LCD_YELLOW);
 		ptrDisplay->print("Temperature", 50, 0, 0);
-		//ptrDisplay->print("Target Temp",220, 215, 0);
+
 		ptrDisplay->print("Target", 215, 0, 0);
 
-	//	ptrInfoBox = new Button(0, 120, 129, 119, displayMode, SmallFont, "Info Box");
-
+		ptrInfoBox = new Button(0, 120, 129, 119, "displayMode", SmallFont, "Info Box");
+		ptrInfoBox->display(false);
 		return true;
 	} else {
 		return false;
@@ -450,8 +446,8 @@ bool defineAltProgramScreen() {
 		ptrModeButton = new Button(240, 105, 70, 25, "ABC", SmallFont, "Mode");
 		ptrProgramButton = new Button(240, 5, 70, 25, "PROGRAM", SmallFont, "Program");
 		ptrControlButton = new Button();
-		ptrUpArrow = new Button(260, 10, 50, 60, "0", arrows7, "UP Arrow");
-		ptrDownArrow = new Button(260, 170, 50, 60, "1", arrows7, "DOWN Arrow");
+		ptrUpArrow = new Button(260, 10, 50, 60, UP_ARROW, arrows7, "UP Arrow");
+		ptrDownArrow = new Button(260, 170, 50, 60, DOWN_ARROW, arrows7, "DOWN Arrow");
 		ptrDesiredTemp = new Button(129, 120, 70, 60, "::", SevenSegNumFont, "Target Temp");
 		ptrCurrentTemp = new Button(0, 0, 200, 120, "00", SevenSeg_XXXL_Num, "Current Temp");
 		ptrMainDisplayArea = new Button(0, 0, 319, 239, "", SmallFont, "Main Display Area");
